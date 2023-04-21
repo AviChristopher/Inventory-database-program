@@ -23,7 +23,7 @@ class Brand(Base):
     
     brand_id= Column (Integer,primary_key=True, autoincrement=True)
     brand_name= Column(String)
-    # products=relationship("Product",back_populates="brand_data")
+    products=relationship("Product",back_populates="brand")
 
     def __repr__(self):
         return f'brand_id:{self.brand_id} brand_name: {self.brand_name}'
@@ -38,6 +38,7 @@ class Product(Base):
     product_quantity= Column(Integer)    
     date_updated= Column(Date)
     brand_id=Column (Integer,ForeignKey("brands.brand_id"))
+    brand = relationship("Brand", back_populates="products")
    
     
     def __repr__(self):
@@ -105,10 +106,10 @@ def brands_csv():
             if row [0] == 'brand_name':
                 continue
             brand_name= row[0]
-            print(f'>>>>>{brand_name}')
+            #print(f'>>>>>{brand_name}')
 
             new_brand = Brand(brand_name=brand_name)
-            print(f"Here you go {new_brand}") 
+            #print(f"Here you go {new_brand}") 
             session.add(new_brand)
         session.commit()
             
@@ -128,14 +129,16 @@ def inventory_csv():
                 continue
             csvRows.append(row)
     for row in csvRows:
-        name= row[0]
-        price= clean_price(row[1])
-        quantity= int(row[2]) 
-        date_updated=clean_date(row[3])
-        brand_data = get_brand_id(row[4])
-        brand_data = int(brand_data.brand_id)
-        new_product= Product(product_name=name, product_price=price, product_quantity=quantity, date_updated=date_updated, brand_id = brand_data)
-        session.add(new_product)
+        product_in_db =session.query(Product).filter(Product.product_price==row[1]).one_or_none()
+        if product_in_db == None:
+            name= row[0]
+            price= clean_price(row[1])
+            quantity= int(row[2]) 
+            date_updated=clean_date(row[3])
+            brand_data = get_brand_id(row[4])
+            brand_data = int(brand_data.brand_id)
+            new_product= Product(product_name=name, product_price=price, product_quantity=quantity, date_updated=date_updated, brand_id = brand_data)
+            session.add(new_product)
     session.commit()
    
     
@@ -173,20 +176,20 @@ def start_app():
 
 
 
-if __name__ == '__main__ ':
+if __name__ == '__main__':
     Base.metadata.create_all(engine)   
-#start_app()
-#clean_price ( '$5.70')
-#clean_date('12/19/2018')
-brands_csv()
-inventory_csv()
+    #start_app()
+    #clean_price ( '$5.70')
+    #clean_date('12/19/2018')
+    brands_csv()
+    inventory_csv()
 
-# result = session.query(Product).all()
-# for r in result:
-#     print(f'Loop for rrrrr{r}')
+    # result = session.query(Product).all()
+    # for r in result:
+    #     print(f'Loop for rrrrr{r}')
 
-for product in session.query(Product):
-   print(product)
+    for product in session.query(Product):
+        print(product)
 
 
 
