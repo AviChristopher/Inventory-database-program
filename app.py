@@ -43,7 +43,59 @@ class Product(Base):
         
       
 def clean_price(price_str):
-     return int(float(price_str[1:])*100)
+    try:
+        int(float(price_str[1:])*100)
+    except ValueError:
+        input(''' 
+        \n****** PRICE ERROR*****
+        \rThe price should be a number with a currency symbol.
+        \rEx: $10.99
+        \rPress enter to try again.
+        \r************************      
+                      
+        ''')
+    else:
+        return int(float(price_str[1:])*100)
+    
+
+def clean_brand(brand_name,li_brand_name):
+    try:
+        brand_name=brand_name
+        if brand_name in li_brand_name:
+            return brand_name
+    except ValueError:
+            input(f''' 
+        \n******ID ERROR*****
+        \rYour Options:{li_brand_name}
+        \rPress enter to try again.
+        \r************************''')
+            return
+    
+def clean_id(id,li_productID):
+    try:
+        product_id = int(id)   
+
+    except ValueError:
+        input(''' 
+        \n******ID ERROR*****
+        \rThe id must be a number. 
+        \rPress enter to try again.
+        \r************************''')
+        return
+
+    else:
+        if product_id in li_productID:
+            return product_id
+        else:
+            input(f''' 
+        \n******ID ERROR*****
+        \rYour Options:{li_productID}
+        \rPress enter to try again.
+        \r************************''')
+            return
+
+
+     
 
 
 def clean_date(date_str):
@@ -52,13 +104,25 @@ def clean_date(date_str):
 
 #defining functions for PRODUCT CRUD Operation
 def add_new_product():
+    li_brand_name=showbrand_name()
+
     name= input('Product Name:  ')
-    price = input('Product Price(Ex:$4.25): ')
-    price_edit = clean_price(price)
-    quantity=int(input('Product Quntity: '))
+    price_error = True
+    while price_error:
+        price = input('Product Price(Ex:$4.25): ')
+        price_edit = clean_price(price)
+        if type(price)== int:
+            price_error = False
+
+    quantity=int(input('Product Quantity: '))
     # updated_date= input('Date Updated(Ex:1/20/2018): ')
     updated_date= dt.datetime.now()
-    b_name = input("Brand Name: ")
+    brand_error = True
+    while brand_error:
+         b_name = input("Brand Name: ")
+         b_edit=clean_brand(b_edit,li_brand_name)
+         brand_error = False
+
     brand_d = get_brand_id(b_name)
     brand_d = int(brand_d.brand_id)
    
@@ -67,19 +131,37 @@ def add_new_product():
     session.commit()
     print("Product has been added")
 
+def showbrand_name():
+    showbrand_name=[]
+    for brand in session.query(Brand):
+        showbrand_name.append(brand.brand_name)
+    
+    return showbrand_name
+
+
+def showproduct_id():
+    showproduct_id=[]
+    for product in session.query(Product):
+        showproduct_id.append(product.product_id)
+    
+    return showproduct_id
+
     
 
 def view_product_details():
+    li_productID=showproduct_id()
     result = session.query(Product).all()
     for r in result:
-        print(f'Product Id: {r.product_id}  Product Name:  {r.product_name}')
-    while True:
-        try: 
-            opt = int(input("Enter Product Id: \n"))
-        except ValueError:
-            print("Must be a number!")
-            continue
-        break
+        print(f'Product Id: {r.product_id} | Product Name:  {r.product_name}')
+    id_error = True
+    while id_error:
+        opt = (input(f'''\n Available Products by ID: {li_productID}\n
+            \rEnter Product ID:   '''))
+        opt =clean_id(opt,li_productID)
+        if type(opt) == int:
+            id_error = False
+           
+        
     res = session.query(Product).filter(Product.product_id == opt).first()
     print(f"Name: {res.product_name}\nPrice: {res.product_price}\nQuantity: {res.product_quantity}\nUpdateD On:{res.date_updated}\nBrand Id:{res.brand_id}")    
 
@@ -174,12 +256,6 @@ def create_backup_file_products():
 
 
 
-
-
-
-
-
-
 def menu(): 
            
         print("\n Welcome to Grocery Inventory ")
@@ -208,6 +284,7 @@ def menu():
                     UserOption=input('What would you like to do?').lower()                    
                     if UserOption == 'v':
                         view_product_details()
+                        showproduct_id()
                     elif UserOption == 'n':
                         add_new_product()
                     elif UserOption == 'a':
@@ -273,10 +350,6 @@ def inventory_csv():
     session.commit()
    
     
-
-    
-               
-          
             
             
         
@@ -286,7 +359,10 @@ def inventory_csv():
 
 if __name__ == '__main__':
     Base.metadata.create_all(engine)
-    menu()   
+    inventory_csv()
+    brands_csv()
+    menu() 
+
   
 
 
