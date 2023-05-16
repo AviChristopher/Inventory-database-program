@@ -360,8 +360,8 @@ def inventory_csv():
 
 if __name__ == '__main__':
     Base.metadata.create_all(engine)
-    inventory_csv()
     brands_csv()
+    inventory_csv()    
     menu() 
 
   
