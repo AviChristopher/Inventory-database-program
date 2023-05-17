@@ -105,29 +105,36 @@ def clean_date(date_str):
 
 #defining functions for PRODUCT CRUD Operation
 def add_new_product():
-    li_brand_name=showbrand_name()
+    #li_brand_name=showbrand_name()
 
     name= input('Product Name:  ')
     price_error = True
     while price_error:
         price = input('Product Price(Ex:$4.25): ')
-        price_edit = clean_price(price)
-        if type(price)== int:
-            price_error = False
-
+        price = clean_price(price)
+        if type(price) == int:       
+            price_error = False    
+    
     quantity=int(input('Product Quantity: '))
     # updated_date= input('Date Updated(Ex:1/20/2018): ')
     updated_date= dt.datetime.now()
-    brand_error = True
-    while brand_error:
-         b_name = input("Brand Name: ")
-         b_edit=clean_brand(b_edit,li_brand_name)
-         brand_error = False
-
-    brand_d = get_brand_id(b_name)
-    brand_d = int(brand_d.brand_id)
+    brandname_error=True
+    while brandname_error:
+        try:
+            b_name = input("Brand Name: ") 
+            brand_d = get_brand_id(b_name)
+            brand_d = int(brand_d.brand_id)
+        except AttributeError:
+            input(''' 
+        \n******ERROR*****
+        \rThis brand does NOT exist in the database. 
+        \rPress enter to try again.
+        \r************************''')
+        
+        else:
+            brandname_error=False
    
-    pnew = Product(product_name=name, product_price=price_edit, product_quantity=quantity,date_updated = updated_date, brand_id = brand_d)
+    pnew = Product(product_name=name, product_price=price, product_quantity=quantity,date_updated = updated_date, brand_id = brand_d)
     session.add(pnew)
     session.commit()
     print("Product has been added")
@@ -280,7 +287,8 @@ def menu():
                       \rv) View the details of a product
                       \rN) Add New Product
                       \rA) View Analysis
-                      \rB) Backup the database """)
+                      \rB) Backup the database 
+                      \rX) To return to the main menu """)
                                                                 
                     UserOption=input('What would you like to do?').lower()                    
                     if UserOption == 'v':
@@ -293,6 +301,9 @@ def menu():
                     elif UserOption == 'b':
                         create_backup_file_brands()
                         create_backup_file_products()
+                    elif UserOption == 'x':
+                         break
+                    
                         
                       
                       
@@ -362,7 +373,10 @@ if __name__ == '__main__':
     Base.metadata.create_all(engine)
     brands_csv()
     inventory_csv()    
-    menu() 
+    menu()
+   
+    
+ 
 
   
 
